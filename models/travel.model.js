@@ -1,0 +1,1 @@
+//ไฟล์ที่ทำงานหรือแมปกับ table ใน database travel_tb
