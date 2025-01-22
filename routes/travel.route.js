@@ -11,7 +11,7 @@ const router = express.Router();
 
 //กำหนดเส้นทางในการเรียกใช้งาน service/api
 
-router.post("/", travelCtrl.createTravel);
+router.post("/", travelCtrl.uploadTravel, travelCtrl.createTravel);
 
 router.get("/:travellerId", travelCtrl.getAllTravel);
 

@@ -10,7 +10,7 @@ const router = express.Router();
 
 //กำหนดเส้นทางในการเรียกใช้งาน service/api
 
-router.post("/", travellerCtrl.createTraveller);
+router.post("/", travellerCtrl.uploadTraveller,travellerCtrl.createTraveller);
 
 router.get("/:travellerEmail/:travellerPassword", travellerCtrl.checkloginTraveller);
 

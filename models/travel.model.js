@@ -36,6 +36,10 @@ const Travel = sequelize.define('travel_tb', {
         type: Sequelize.INTEGER,
         allowNull: false,
         field: "travellerId"
+    },travelImage: {
+        type: Sequelize.STRING(150),
+        allowNull: false,
+        field: "travelImage"
     }
 },
 {
