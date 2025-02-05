@@ -14,7 +14,7 @@ router.post("/", travellerCtrl.uploadTraveller,travellerCtrl.createTraveller);
 
 router.get("/:travellerEmail/:travellerPassword", travellerCtrl.checkloginTraveller);
 
-router.put("/:travellerId", travellerCtrl.editTraveller);
+router.put("/:travellerId", travellerCtrl.uploadTraveller, travellerCtrl.editTraveller);
 
 router.delete("/:travellerId", travellerCtrl.deleteTraveller);
 

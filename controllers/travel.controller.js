@@ -5,6 +5,7 @@
 const Travel = require('./../models/travel.model.js');
 const multer = require('multer');
 const path = require('path');
+const fs = require('fs');
 
 // สร้าง function  เพิ่มข้อมูลลงใน traveller_tb
 // exports.createTravel = async (req, res) => {
@@ -27,7 +28,7 @@ exports.createTravel = async (req, res) => {
 
         let data = {
             ...req.body,
-            travelImage: req.file.path.replace("images\\travel\\", "")
+            travelImage: req.file ? req.file.path.replace("images\\travel\\", "") : ""
         }
 
         const result = await Travel.create(data);
@@ -46,7 +47,31 @@ exports.createTravel = async (req, res) => {
 
 exports.editTravel = async (req, res) => {
     try {
-        const result = await Travel.update(req.body, {where: {travelId: req.params.travelId,
+
+        let data = {
+            ...req.body,
+        }
+        if(req.file){
+            
+            const travel = await Travel.findOne({where: {travelId: req.params.travelId}});
+
+            if(travel.travelImage){
+                const oldImage = "images/travel/" + travel.travelImage;
+                //ลบไฟล์รูปเก่าทิ้ง
+                fs.unlink(oldImage,(err)=>{
+                    });
+                
+        }
+
+            data.travelImage = req.file.path.replace("images\\travel\\", "");
+        
+        }else{
+            delete data.travelImage
+        }
+
+
+
+        const result = await Travel.update(data, {where: {travelId: req.params.travelId,
 
         }
     });
@@ -65,24 +90,61 @@ exports.editTravel = async (req, res) => {
 
 
 //function delete travel
-exports.deleteTravel = async (req, res) => {
-    try {
-        const result = await Travel.destroy({where: {travelId: req.params.travelId,
+// exports.deleteTravel = async (req, res) => {
+//     try {
+//         const result = await Travel.destroy({where: {travelId: req.params.travelId,
 
-        }
-    });
+//         }
+//     });
    
-        res.status(200).json({
-            message: 'Travel Deleted successfully',
-            data: result
-        });
+//         res.status(200).json({
+//             message: 'Travel Deleted successfully',
+//             data: result
+//         });
 
    
         
+//     } catch (error) {
+//         res.status(500).json({ message: error.message });
+//     }
+// }
+
+exports.deleteTravel = async (req, res) => {
+    try {
+        // Find the travel record
+        const travel = await Travel.findOne({ where: { travelId: req.params.travelId } });
+
+        if (!travel) {
+            return res.status(404).json({ message: "Travel record not found" });
+        }
+
+        // If the travel record has an image, delete it from the folder
+        if (travel.travelImage) {
+            const imagePath = path.join(__dirname, "..", "images", "travel", travel.travelImage);
+
+            // Check if the file exists before deleting
+            if (fs.existsSync(imagePath)) {
+                fs.unlinkSync(imagePath); // Synchronously delete the file
+            }
+        }
+
+        // Delete the travel record from the database
+        const result = await Travel.destroy({ where: { travelId: req.params.travelId } });
+
+        res.status(200).json({
+            message: "Travel record and associated image deleted successfully",
+            data: result
+        });
+
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
-}
+};
+
+
+
+
+
 
 //function ดึงข้อมูลการเดินทางทั้งหมดของนักเดินทางหนึ่งจากตาราง travel_tb
 exports.getAllTravel = async (req, res) => {

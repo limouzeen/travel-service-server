@@ -13,9 +13,9 @@ const router = express.Router();
 
 router.post("/", travelCtrl.uploadTravel, travelCtrl.createTravel);
 
-router.get("/:travellerId", travelCtrl.getAllTravel);
+router.get("/:travelId", travelCtrl.getAllTravel);
 
-router.put("/:travelId", travelCtrl.editTravel);
+router.put("/:travelId", travelCtrl.uploadTravel, travelCtrl.editTravel);
 
 router.delete("/:travelId", travelCtrl.deleteTravel);
 

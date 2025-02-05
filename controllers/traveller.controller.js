@@ -1,6 +1,8 @@
 const multer = require('multer');
 const Traveller = require('./../models/traveller.model.js');
 const path = require('path');
+const fs = require('fs');
+
 //สร้าง function  เพิ่มข้อมูลลงใน traveller_tb
 // exports.createTraveller = async (req, res) => {
 //     try {
@@ -21,7 +23,7 @@ exports.createTraveller = async (req, res) => {
 
         let data = {
             ...req.body,
-            travellerImage: req.file.path.replace("images\\traveller\\", "")
+            travellerImage: req.file ? req.file.path.replace("images\\traveller\\", "") : ""
         }
 
         const result = await Traveller.create(data);
@@ -61,7 +63,33 @@ exports.checkloginTraveller = async (req, res) => {
 //function แก้ไขข้อมูลตาราง traveller_tb
 exports.editTraveller = async (req, res) => {
     try {
-        const result = await Traveller.update(req.body, {where: {travellerId: req.params.travellerId,
+
+        //มีการตรวขสอบก่อนว่ามีไฟล์อัพโหลดมามั้ย
+        // case มีไฟล์เก่าอยู่หรือไม่ถ้ามีไฟล์เก่าอยู่ให้ลบไฟล์เก่าออก
+        let data = {
+
+            ...req.body,
+        }
+        if(req.file){
+            
+            const traveller = await Traveller.findOne({where: {travellerId: req.params.travellerId}});
+
+            if(traveller.travellerImage){
+                const oldImage = "images/traveller/" + traveller.travellerImage;
+                //ลบไฟล์รูปเก่าทิ้ง
+                fs.unlink(oldImage,(err)=>{
+                    });
+                
+        }
+
+            data.travellerImage = req.file.path.replace("images\\traveller\\", "");
+        
+        }else{
+            delete data.travellerImage
+        }
+
+
+        const result = await Traveller.update(data, {where: {travellerId: req.params.travellerId,
 
         }
     });
@@ -80,23 +108,55 @@ exports.editTraveller = async (req, res) => {
 }
 
 
-exports.deleteTraveller = async (req, res) => {
-    try {
-        const result = await Traveller.destroy({where: {travellerId: req.params.travellerId,
+// exports.deleteTraveller = async (req, res) => {
+//     try {
+//         const result = await Traveller.destroy({where: {travellerId: req.params.travellerId,
 
-        }
-    });
+//         }
+//     });
 
-        res.status(200).json({
-            message: 'Traveller Deleted successfully',
-            data: result
-        });
+//         res.status(200).json({
+//             message: 'Traveller Deleted successfully',
+//             data: result
+//         });
     
         
+//     } catch (error) {
+//         res.status(500).json({ message: error.message });
+//     }
+// }
+
+exports.deleteTraveller = async (req, res) => {
+    try {
+        // Find the traveller record before deleting
+        const traveller = await Traveller.findOne({ where: { travellerId: req.params.travellerId } });
+
+        if (!traveller) {
+            return res.status(404).json({ message: "Traveller record not found" });
+        }
+
+        // If the traveller record has an image, delete it from the folder
+        if (traveller.travellerImage) {
+            const imagePath = path.join(__dirname, "..", "images", "traveller", traveller.travellerImage);
+
+            // Check if the file exists before deleting
+            if (fs.existsSync(imagePath)) {
+                fs.unlinkSync(imagePath); // Synchronously delete the file
+            }
+        }
+
+        // Delete the traveller record from the database
+        const result = await Traveller.destroy({ where: { travellerId: req.params.travellerId } });
+
+        res.status(200).json({
+            message: "Traveller record and associated image deleted successfully",
+            data: result
+        });
+
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
-}
+};
 
 //ฟังก์ชันเพื่อการอัปโหลดไฟล์
 const storage = multer.diskStorage({
