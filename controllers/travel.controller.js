@@ -71,9 +71,9 @@ exports.editTravel = async (req, res) => {
 
 
 
-        const result = await Travel.update(data, {where: {travelId: req.params.travelId,
+        await Travel.update(data, {where: {travelId: req.params.travelId}});
 
-        }
+        const result = await Travel.findOne({where: {travelId: req.params.travelId}
     });
    
         res.status(200).json({
@@ -167,6 +167,26 @@ exports.getAllTravel = async (req, res) => {
         res.status(500).json({ message: error.message });
     }
 }
+
+
+exports.getTravel = async (req, res) => {
+    try {
+        const result = await Travel.findOne({ where: { travelId: req.params.travelId } });
+        if (result) {
+            res.status(200).json({
+                message: 'Travel get data successfully',
+                data: result
+            });
+        } else {
+            res.status(404).json({
+                message: 'Travel data not found',
+                data: null
+            });
+        }
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
 
 //ฟังก์ชันเพื่อการอัปโหลดไฟล์
 const storage = multer.diskStorage({

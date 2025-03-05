@@ -15,7 +15,8 @@ app.use(cors()); //จัดการในการเรียกใช้ง�
 app.use('/traveller', travellerRoute); //เวลาเรียกใช้งานให้เรียก /traveller ก่อน
 app.use('/travel', travelRoute);
 
-
+app.use("/images/traveller", express.static("images/traveller"));
+app.use("/images/travel", express.static("images/travel"));
 
 //เทสการเรียกใช้งาน webserver จาก client/user หรือระบบอื่นๆ
 app.get('/', (req, res) => {

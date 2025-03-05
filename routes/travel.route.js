@@ -13,7 +13,9 @@ const router = express.Router();
 
 router.post("/", travelCtrl.uploadTravel, travelCtrl.createTravel);
 
-router.get("/:travelId", travelCtrl.getAllTravel);
+router.get("/:travellerId", travelCtrl.getAllTravel);
+
+router.get("/one/:travelId", travelCtrl.getTravel);
 
 router.put("/:travelId", travelCtrl.uploadTravel, travelCtrl.editTravel);
 

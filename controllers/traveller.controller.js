@@ -61,51 +61,102 @@ exports.checkloginTraveller = async (req, res) => {
 }
 
 //function แก้ไขข้อมูลตาราง traveller_tb
-exports.editTraveller = async (req, res) => {
-    try {
+// exports.editTraveller = async (req, res) => {
+//     try {
 
-        //มีการตรวขสอบก่อนว่ามีไฟล์อัพโหลดมามั้ย
-        // case มีไฟล์เก่าอยู่หรือไม่ถ้ามีไฟล์เก่าอยู่ให้ลบไฟล์เก่าออก
-        let data = {
+//         //มีการตรวขสอบก่อนว่ามีไฟล์อัพโหลดมามั้ย
+//         // case มีไฟล์เก่าอยู่หรือไม่ถ้ามีไฟล์เก่าอยู่ให้ลบไฟล์เก่าออก
+//         let data = {
 
-            ...req.body,
-        }
-        if(req.file){
+//             ...req.body,
+//         }
+//         if(req.file){
             
-            const traveller = await Traveller.findOne({where: {travellerId: req.params.travellerId}});
+//             const traveller = await Traveller.findOne({where: {travellerId: req.params.travellerId}});
 
-            if(traveller.travellerImage){
-                const oldImage = "images/traveller/" + traveller.travellerImage;
-                //ลบไฟล์รูปเก่าทิ้ง
-                fs.unlink(oldImage,(err)=>{
-                    });
+//             if(traveller.travellerImage){
+//                 const oldImage = "images/traveller/" + traveller.travellerImage;
+//                 //ลบไฟล์รูปเก่าทิ้ง
+//                 fs.unlink(oldImage,(err)=>{
+//                     });
                 
-        }
+//         }
 
-            data.travellerImage = req.file.path.replace("images\\traveller\\", "");
+//             data.travellerImage = req.file.path.replace("images\\traveller\\", "");
         
-        }else{
-            delete data.travellerImage
-        }
+//         }else{
+//             delete data.travellerImage
+//         }
 
 
-        const result = await Traveller.update(data, {where: {travellerId: req.params.travellerId,
+//         const result = await Traveller.update(data, {where: {travellerId: req.params.travellerId,
 
-        }
-    });
+//         }
+//     });
 
-        res.status(200).json({
-            message: 'Traveller Updated successfully',
-            data: result
-        });
+//         res.status(200).json({
+//             message: 'Traveller Updated successfully',
+//             data: result
+//         });
 
 
     
         
+//     } catch (error) {
+//         res.status(500).json({ message: error.message });
+//     }
+// }
+exports.editTraveller = async (req, res) => {
+    try {
+        let data = { ...req.body };
+
+        // 📌 1. ค้นหาข้อมูล `Traveller` ที่ต้องการอัปเดต
+        const traveller = await Traveller.findOne({ where: { travellerId: req.params.travellerId } });
+
+        if (!traveller) {
+            return res.status(404).json({ message: "Traveller not found" });
+        }
+
+        // 📌 2. ถ้ามีไฟล์รูปที่อัปโหลดมา ให้ลบไฟล์เก่าทิ้งก่อน
+        if (req.file) {
+            if (traveller.travellerImage) {
+                const oldImagePath = "images/traveller/" + traveller.travellerImage;
+                fs.unlink(oldImagePath, (err) => {
+                    if (err) {
+                        console.error("❌ ลบไฟล์เก่าไม่สำเร็จ:", err);
+                    } else {
+                        console.log("✅ ลบไฟล์เก่าสำเร็จ:", oldImagePath);
+                    }
+                });
+            }
+
+            // 📌 3. อัปเดตรูปใหม่
+            data.travellerImage = req.file.path.replace("images\\traveller\\", "").replace("images/traveller/", "");
+        } else {
+            delete data.travellerImage;
+        }
+
+        // 📌 4. อัปเดตข้อมูลในฐานข้อมูล
+        await Traveller.update(data, { where: { travellerId: req.params.travellerId } });
+
+        // 📌 5. ค้นหาข้อมูลใหม่หลังอัปเดต
+        const updatedTraveller = await Traveller.findOne({ where: { travellerId: req.params.travellerId } });
+
+        // 📌 6. ส่งค่ากลับไปที่ Client รวมถึงรูปที่อัปเดตล่าสุด
+        res.status(200).json({
+            message: "Traveller Updated successfully",
+            travellerId: updatedTraveller.travellerId,
+            travellerFullname: updatedTraveller.travellerFullname,
+            travellerEmail: updatedTraveller.travellerEmail,
+            travellerPassword: updatedTraveller.travellerPassword,
+            travellerImage: updatedTraveller.travellerImage, // ✅ ส่งค่ารูปภาพกลับไปให้ Frontend
+        });
+
     } catch (error) {
+        console.error("❌ เกิดข้อผิดพลาดใน API:", error);
         res.status(500).json({ message: error.message });
     }
-}
+};
 
 
 // exports.deleteTraveller = async (req, res) => {
